@@ -27,34 +27,68 @@ app.post("/webhook", async (req, res) => {
     const chatId = update.message.chat.id;
     const text = update.message.text || "";
 
-   if (text === "/start") {
+  if (text === "/start") {
 
   await fetch(API + "/sendMessage", {
+
     method: "POST",
+
     headers: {
       "Content-Type": "application/json"
     },
+
     body: JSON.stringify({
+
       chat_id: chatId,
-      text: "🌹 أهلاً بك في بوت MOQATI511\n\nاختر الخدمة المطلوبة:",
+
+      text:
+`🌹 أهلاً بك في بوت MOQATI511
+
+اختر الخدمة المطلوبة:`,
+
       reply_markup: {
-        keyboard: [
+
+        inline_keyboard: [
+
           [
-            "📱 إضافة رقم الجوال",
-            "📅 إضافة موعد الزواج"
+            {
+              text: "📱 إضافة رقم الجوال",
+              url: "https://script.google.com/macros/s/AKfycbwhcbIigHH5S9_gKfjBAvry92gyps3pR2ZIMKh9knLrAprWR9LG1djRZPZm0Eq-pftZnw/exec"
+            }
           ],
+
           [
-            "☎️ للتواصل معنا",
-            "📋 جدول زواجات القبيلة"
+            {
+              text: "📅 إضافة موعد الزواج",
+              url: "https://script.google.com/macros/s/AKfycbw6yH_qWiFlZ9lCy5_bjw5CSPf8Cgz_c1aWxJ-s6x10yrDhwrTK7fUPRKYeE_h1oze-/exec"
+            }
+          ],
+
+          [
+            {
+              text: "📋 جدول زواجات القبيلة",
+              url: "https://script.google.com/macros/s/AKfycbwFdO1vFM08rqugX5FXi-Tyo69vgr2dbL7uS1XiqYg7IsWoBVjMEzA31WQ4q4LRlNXo1w/exec"
+            }
+          ],
+
+          [
+            {
+              text: "☎️ للتواصل معنا",
+              url: "https://api.whatsapp.com/send/?phone=966500994990&text&type=phone_number&app_absent=0"
+            }
           ]
-        ],
-        resize_keyboard: true
+
+        ]
+
       }
+
     })
+
   });
 
   return res.sendStatus(200);
 }
+    
 
    const telegramResponse = await fetch(API + "/sendMessage", {
   method: "POST",
