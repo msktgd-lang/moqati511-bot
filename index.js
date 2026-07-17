@@ -313,20 +313,26 @@ return res.sendStatus(200);
 
 
 
-  const reply =
-  await askAI(text, chatId);
+ let reply;
+
+try {
+
+  reply = await askAI(text, chatId);
+
+}
+catch(error){
+
+  console.log("GEMINI ERROR:", error);
+
+  reply = "حدث خطأ أثناء الاتصال بالمساعد الذكي.";
+
+}
 
 
-
-  await sendMessage(
-
-    chatId,
-
-    reply
-
-  );
-
-
+await sendMessage(
+ chatId,
+ reply
+);
 
   return res.sendStatus(200);
 
