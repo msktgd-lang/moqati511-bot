@@ -40,10 +40,41 @@ app.post("/webhook", async (req, res) => {
     const update = req.body;
 
 
-    if (!update.message) {
-      return res.sendStatus(200);
-    }
+    if (update.callback_query) {
 
+  const chatId = update.callback_query.message.chat.id;
+
+  const data = update.callback_query.data;
+
+
+  if (data === "add_phone") {
+
+    await sendMessage(
+      chatId,
+      "📱 أرسل رقم الجوال الآن."
+    );
+
+  }
+
+
+  if (data === "add_wedding") {
+
+    await sendMessage(
+      chatId,
+      "📅 أرسل بيانات موعد الزواج."
+    );
+
+  }
+
+
+  return res.sendStatus(200);
+}
+
+
+
+if (!update.message) {
+  return res.sendStatus(200);
+}
 
     const chatId = update.message.chat.id;
 
