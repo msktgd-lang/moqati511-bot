@@ -14,8 +14,10 @@ app.get("/", (req, res) => {
 
 app.post("/webhook", async (req, res) => {
 
-  try {
+  console.log("Webhook received:", JSON.stringify(req.body));
 
+  try {
+  
     const update = req.body;
 
     if (!update.message) {
