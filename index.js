@@ -1,6 +1,5 @@
 import express from "express";
 import fetch from "node-fetch";
-import OpenAI from "openai";
 import knowledge from "./knowledge.json" with { type: "json" };
 
 
@@ -17,12 +16,17 @@ const TOKEN = process.env.BOT_TOKEN;
 
 const API = `https://api.telegram.org/bot${TOKEN}`;
 
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+
+const genAI = new GoogleGenerativeAI(
+ process.env.GEMINI_API_KEY
+);
+
+
+const model = genAI.getGenerativeModel({
+ model: "gemini-1.5-flash"
 });
-
 
 // رابط Google Apps Script
 
@@ -64,20 +68,35 @@ app.get("/", (req,res)=>{
 async function askAI(question, chatId){
 
 
- // البحث في المعرفة الخاصة أولاً
+for(const key in knowledge){
 
- for(const key in knowledge){
+ if(question.includes(key)){
 
-   if(question.includes(key)){
-
-     return knowledge[key];
-
-   }
+  return knowledge[key];
 
  }
 
+}
 
 
+const result = await model.generateContent(
+
+`أنت مساعد ذكي لبوت MOQATI511.
+أجب باللغة العربية بأسلوب طبيعي ومحترم.
+السؤال:
+${question}`
+
+);
+
+
+const response =
+result.response.text();
+
+
+return response;
+
+
+}
  // حفظ المحادثة
 
  if(!chatMemory[chatId]){
