@@ -27,6 +27,17 @@ const WEDDING_SCRIPT_URL =
 // حالات المستخدمين
 const userStates = {};
 
+const FIFTHS = [
+"ذوي عامر",
+"ذوي صويّب",
+"ذوي جعرور",
+"ذوي حميّد",
+"الجعيدات",
+"ذوي عبّاد",
+"ذوي هادي",
+"ذوي قميمة",
+"ذوي هندي"
+];
 
 //=====================
 // الصفحة الرئيسية
@@ -74,6 +85,34 @@ update.callback_query.message.chat.id;
 const data =
 update.callback_query.data;
 
+ // اختيار الخامس
+
+if(data.startsWith("fifth_")){
+
+
+ const fifthName =
+ data.replace("fifth_","");
+
+
+ if(userStates[chatId]){
+
+  userStates[chatId].fifth = fifthName;
+
+  userStates[chatId].step = "phone";
+
+
+  await sendMessage(
+   chatId,
+   "📱 أرسل رقم الجوال (10 أرقام بدون مسافات):"
+  );
+
+
+ }
+
+
+ return res.sendStatus(200);
+
+}
 
 
 // إضافة رقم الجوال
@@ -81,21 +120,15 @@ update.callback_query.data;
 if(data==="add_phone"){
 
 
- userStates[chatId]={
-  type:"phone",
-  step:"name"
- };
+userStates[chatId]={
+ type:"phone",
+ step:"name"
+};
 
-
- await sendMessage(
-  chatId,
-  "👤 أرسل الاسم الثلاثي:"
- );
-
-
-}
-
-
+await sendMessage(
+ chatId,
+ "👤 أرسل الاسم الثلاثي:"
+);
 
 // إضافة موعد الزواج
 
@@ -315,10 +348,11 @@ return;
 if(state.step==="fifth"){
 
 
-state.fifth=text;
-
 state.step="phone";
 
+await sendFifths(chatId);
+
+return;
 
 await sendMessage(
 chatId,
@@ -600,6 +634,49 @@ async function saveWedding(data){
 //=====================
 // إرسال رسالة
 //=====================
+
+async function sendFifths(chatId){
+
+let buttons=[];
+
+for(let i=0;i<FIFTHS.length;i+=2){
+
+ buttons.push(
+  FIFTHS.slice(i,i+2).map(name=>({
+
+   text:name,
+   callback_data:"fifth_"+name
+
+  }))
+ );
+
+}
+
+
+await fetch(API+"/sendMessage",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+chat_id:chatId,
+
+text:"👥 اختر الخامس:",
+
+reply_markup:{
+inline_keyboard:buttons
+}
+
+})
+
+});
+
+
+}
 
 async function sendMessage(chatId,text){
 
