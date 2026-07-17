@@ -68,13 +68,40 @@ app.get("/", (req,res)=>{
 async function askAI(question, chatId){
 
 
+// البحث في المعرفة الخاصة
+
 for(const key in knowledge){
 
  if(question.includes(key)){
 
-  return knowledge[key];
+   return knowledge[key];
 
  }
+
+}
+
+
+
+// إذا لم توجد إجابة محفوظة استخدم Gemini
+
+const result = await model.generateContent(
+
+`أنت مساعد ذكي لبوت MOQATI511.
+تحدث باللغة العربية بأسلوب طبيعي ومحترم.
+ساعد المستخدم في الأسئلة العامة.
+إذا كان السؤال عن خدمات البوت أجب حسب المعلومات المتوفرة.
+
+سؤال المستخدم:
+${question}`
+
+);
+
+
+const response = result.response.text();
+
+
+return response;
+
 
 }
 
