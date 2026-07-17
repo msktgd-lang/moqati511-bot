@@ -113,103 +113,7 @@ update.callback_query.message.chat.id;
 const data =
 update.callback_query.data;
 
-// اختيار خدمة إضافة رقم الجوال
 
-if(data==="add_phone"){
-
-users[chatId]={
-type:"phone",
-step:"name"
-};
-
-
-await sendMessage(
-chatId,
-"👤 أرسل الاسم الثلاثي:"
-);
-
-return res.sendStatus(200);
-
-}
-
-
-
-// اختيار خدمة الزواج
-
-if(data==="add_wedding"){
-
-users[chatId]={
-type:"wedding",
-step:"groom"
-};
-
-
-await sendMessage(
-chatId,
-"👤 أرسل اسم العريس:"
-);
-
-return res.sendStatus(200);
-
-}
-
-
-
-// اختيار الخامس
-
-if(data.startsWith("fifth_")){
-
-
-const fifth =
-data.replace("fifth_","");
-
-
-users[chatId].fifth=fifth;
-
-
-users[chatId].step="phone";
-
-
-await sendMessage(
-chatId,
-"📱 أرسل رقم الجوال (10 أرقام بدون مسافات):"
-);
-
-
-return res.sendStatus(200);
-
-}
-
-
-
-// اختيار الدعوة
-
-if(data.startsWith("invite_")){
-
-
-const invitation =
-data.replace("invite_","");
-
-
-users[chatId].invitation=invitation;
-
-
-await saveWedding(users[chatId]);
-
-
-await sendMessage(
-chatId,
-"✅ تم حفظ موعد الزواج بنجاح."
-);
-
-
-delete users[chatId];
-
-
-return res.sendStatus(200);
-
-}
- 
 // هنا ستضاف معالجة الأزرار في الجزء الثاني
 
 
@@ -254,7 +158,9 @@ res.sendStatus(200);
 
 }
 
- //=====================
+
+});
+//=====================
 // معالجة الرسائل والأزرار
 //=====================
 
@@ -492,8 +398,7 @@ return res.sendStatus(200);
 
 
 }
-
- //=====================
+//=====================
 // القائمة الرئيسية
 //=====================
 
@@ -757,65 +662,156 @@ return;
 
 
 }
-
- 
 //=====================
-// قائمة الخوامس
+// نموذج موعد الزواج
 //=====================
 
-async function sendFifths(chatId){
+async function handleWedding(chatId,text){
 
 
-let buttons=[];
+const state = userStates[chatId];
 
 
-for(let i=0;i<FIFTHS.length;i+=2){
+
+if(state.step==="groom"){
 
 
-buttons.push(
+state.groom=text;
 
-FIFTHS.slice(i,i+2).map(name=>({
+state.step="fifth";
 
-text:name,
 
-callback_data:"fifth_"+name
-
-}))
-
+await sendMessage(
+chatId,
+"👥 أرسل اسم الخامس:"
 );
 
 
+return;
+
+}
+
+
+
+if(state.step==="fifth"){
+
+
+state.fifth=text;
+
+state.step="phone";
+
+
+await sendMessage(
+chatId,
+"📱 أرسل رقم الجوال:"
+);
+
+
+return;
+
 }
 
 
 
-await fetch(
-API+"/sendMessage",
-{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-chat_id:chatId,
-
-text:"👥 اختر الخامس:",
+if(state.step==="phone"){
 
 
-reply_markup:{
+state.phone=text;
 
-inline_keyboard:buttons
+state.step="day";
+
+
+await sendMessage(
+chatId,
+"📅 أرسل اليوم:"
+);
+
+
+return;
 
 }
 
-})
 
 
-});
+if(state.step==="day"){
+
+
+state.day=text;
+
+state.step="date";
+
+
+await sendMessage(
+chatId,
+"🗓 أرسل التاريخ الهجري:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="date"){
+
+
+state.date=text;
+
+state.step="hall";
+
+
+await sendMessage(
+chatId,
+"🏛 أرسل اسم القاعة:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="hall"){
+
+
+state.hall=text;
+
+state.step="invitation";
+
+
+await sendMessage(
+chatId,
+"🎟 أرسل نوع الدعوة:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="invitation"){
+
+
+state.invitation=text;
+
+
+await saveWedding(state);
+
+
+await sendMessage(
+chatId,
+"✅ تم حفظ موعد الزواج بنجاح."
+);
+
+
+delete userStates[chatId];
+
+
+}
 
 
 }
@@ -823,70 +819,12 @@ inline_keyboard:buttons
 
 
 //=====================
-// قائمة الدعوة
-//=====================
-
-async function sendInvitations(chatId){
-
-
-await fetch(
-API+"/sendMessage",
-{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-chat_id:chatId,
-
-text:"🎟 اختر نوع الدعوة:",
-
-
-reply_markup:{
-
-inline_keyboard:[
-
-[
-{
-text:"🎟 عامة",
-callback_data:"invite_عامة"
-}
-],
-
-[
-{
-text:"🎟 خاصة",
-callback_data:"invite_خاصة"
-}
-]
-
-]
-
-}
-
-
-})
-
-
-});
-
-
-}
-
-
-
-//=====================
-// حفظ رقم الجوال
+// الحفظ في Google Sheet
 //=====================
 
 async function savePhone(data){
 
 
-const response =
 await fetch(
 PHONE_SCRIPT_URL,
 {
@@ -912,38 +850,13 @@ phone:data.phone
 });
 
 
-const result =
-await response.text();
-
-
-console.log(
-"PHONE RESPONSE:",
-result
-);
-
-
-if(result.includes("exists")){
-
-return "exists";
-
 }
 
 
-return "success";
-
-
-}
-
-
-
-//=====================
-// حفظ الزواج
-//=====================
 
 async function saveWedding(data){
 
 
-const response =
 await fetch(
 WEDDING_SCRIPT_URL,
 {
@@ -966,7 +879,7 @@ phone:data.phone,
 
 day:data.day,
 
-date:data.day,
+date:data.date,
 
 hall:data.hall,
 
@@ -975,42 +888,6 @@ invitation:data.invitation
 })
 
 });
-
-
-console.log(
-"WEDDING RESPONSE:",
-await response.text()
-);
-
-
-}
-
-
-
-//=====================
-// التاريخ
-//=====================
-
-function getToday(){
-
-
-const now=new Date();
-
-
-return now.toLocaleDateString(
-"ar-SA-u-ca-islamic",
-{
-timeZone:"Asia/Riyadh"
-}
-)
-+
-"\n"+
-now.toLocaleDateString(
-"en-CA",
-{
-timeZone:"Asia/Riyadh"
-}
-);
 
 
 }
@@ -1024,9 +901,8 @@ timeZone:"Asia/Riyadh"
 async function sendMessage(chatId,text){
 
 
-const response =
-await fetch(
-API+"/sendMessage",
+const response = await fetch(
+API + "/sendMessage",
 {
 
 method:"POST",
@@ -1060,13 +936,16 @@ await response.text()
 // تشغيل السيرفر
 //=====================
 
-const PORT = process.env.PORT || 3000;
+const PORT =
+process.env.PORT || 3000;
+
 
 app.listen(PORT,()=>{
 
- console.log(
-  `MOQATI511 Bot running on port ${PORT}`
- );
+
+console.log(
+`MOQATI511 Bot running on port ${PORT}`
+);
+
 
 });
- 
