@@ -22,7 +22,7 @@ const GOOGLE_SCRIPT_URL =
 
 // حالات المستخدمين
 const userStates = {};
-
+const assistantUsers = {};
 
 
 //=====================
@@ -115,7 +115,24 @@ app.post("/webhook", async(req,res)=>{
 
  }
 
+if(data==="assistant"){
 
+ assistantUsers[chatId]=true;
+
+ await sendMessage(
+  chatId,
+`🤖 أهلاً بك في المساعد الذكي
+
+يمكنك كتابة أي سؤال.
+
+للخروج اكتب:
+
+إلغاء`
+ );
+
+ return res.sendStatus(200);
+
+}
 
  const chatId =
  update.message.chat.id;
@@ -124,7 +141,33 @@ app.post("/webhook", async(req,res)=>{
  const text =
  update.message.text || "";
 
+//=====================
+// المساعد الذكي
+//=====================
 
+if(assistantUsers[chatId]){
+
+ if(text==="إلغاء"){
+
+  delete assistantUsers[chatId];
+
+  await sendMessage(
+   chatId,
+   "✅ تم إغلاق المساعد الذكي."
+  );
+
+  return res.sendStatus(200);
+
+ }
+
+ await sendMessage(
+  chatId,
+  "🤖 المساعد الذكي قيد التطوير.\n\nكتبت:\n" + text
+ );
+
+ return res.sendStatus(200);
+
+}
 
  // متابعة التسجيل
 
@@ -190,6 +233,13 @@ if (text === "/start") {
             }
           ],
 
+         [
+  {
+    text: "🤖 المساعد الذكي",
+    callback_data: "assistant"
+  }
+],
+         
           [
             {
               text: "☎️ للتواصل معنا",
