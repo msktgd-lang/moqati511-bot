@@ -15,14 +15,18 @@ const TOKEN = process.env.BOT_TOKEN;
 const API = `https://api.telegram.org/bot${TOKEN}`;
 
 
-// رابط Google Apps Script
-const GOOGLE_SCRIPT_URL =
+// حفظ أرقام الجوال
+const PHONE_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbzEqJ1-idCkcAyIDaxHGCv_PZuyVXMAHQny28Rb0ZrcJvab4roBrVLyI6g9cWWgV9WP/exec";
+
+
+// حفظ الزواج
+const WEDDING_SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbw6yH_qWiFlZ9lCy5_bjw5CSPf8Cgz_c1aWxJ-s6x10yrDhwrTK7fUPRKYeE_h1oze-/exec";
 
 
 // حالات المستخدمين
 const userStates = {};
-
 
 
 //=====================
@@ -36,216 +40,242 @@ app.get("/", (req,res)=>{
 });
 
 
-
 //=====================
-// استقبال Telegram
+// Webhook Telegram
 //=====================
 
 app.post("/webhook", async(req,res)=>{
 
 
- console.log(
-  "Webhook received:",
-  JSON.stringify(req.body)
+console.log(
+"Webhook received:",
+JSON.stringify(req.body)
+);
+
+
+try{
+
+
+const update=req.body;
+
+
+
+//=====================
+// ضغط الأزرار
+//=====================
+
+
+if(update.callback_query){
+
+
+const chatId =
+update.callback_query.message.chat.id;
+
+
+const data =
+update.callback_query.data;
+
+
+
+// إضافة رقم الجوال
+
+if(data==="add_phone"){
+
+
+ userStates[chatId]={
+  type:"phone",
+  step:"name"
+ };
+
+
+ await sendMessage(
+  chatId,
+  "👤 أرسل الاسم الثلاثي:"
  );
 
 
- try{
-
-
- const update=req.body;
+}
 
 
 
- // ضغط الأزرار
+// إضافة موعد الزواج
 
- if(update.callback_query){
-
-
- const chatId =
- update.callback_query.message.chat.id;
+if(data==="add_wedding"){
 
 
- const data =
- update.callback_query.data;
+ userStates[chatId]={
+  type:"wedding",
+  step:"groom"
+ };
+
+
+ await sendMessage(
+  chatId,
+  "👤 أرسل اسم العريس:"
+ );
+
+
+}
 
 
 
- if(data==="add_phone"){
+return res.sendStatus(200);
 
 
-  userStates[chatId]={
-   step:"name"
-  };
+}
 
 
-  await sendMessage(
+
+
+if(!update.message){
+
+return res.sendStatus(200);
+
+}
+
+
+
+const chatId =
+update.message.chat.id;
+
+
+const text =
+update.message.text || "";
+
+
+
+// متابعة النماذج
+
+if(userStates[chatId]){
+
+
+ if(userStates[chatId].type==="phone"){
+
+  await handlePhone(
    chatId,
-   "👤 أرسل الاسم الثلاثي:"
+   text
   );
-
 
  }
 
 
+ if(userStates[chatId].type==="wedding"){
 
- if(data==="add_wedding"){
-
-
-  await sendMessage(
+  await handleWedding(
    chatId,
-   "📅 سيتم تجهيز إضافة موعد الزواج."
+   text
   );
 
-
  }
-
 
 
  return res.sendStatus(200);
 
+}
 
- }
-
-
-
- if(!update.message){
-
-  return res.sendStatus(200);
-
- }
-
-
-
- const chatId =
- update.message.chat.id;
-
-
- const text =
- update.message.text || "";
-
-
-
- // متابعة التسجيل
-
- if(userStates[chatId]){
-
-
-   await handlePhoneForm(
-    chatId,
-    text
-   );
-
-
-   return res.sendStatus(200);
-
- }
-
-    //=====================
- // أمر البداية
  //=====================
+// أمر البداية
+//=====================
 
- if(text === "/start"){
-
-
-  await fetch(API + "/sendMessage",{
-
-   method:"POST",
-
-   headers:{
-    "Content-Type":"application/json"
-   },
+if(text === "/start"){
 
 
-   body:JSON.stringify({
+await fetch(API + "/sendMessage",{
 
-    chat_id:chatId,
+method:"POST",
 
-    text:
+headers:{
+"Content-Type":"application/json"
+},
+
+
+body:JSON.stringify({
+
+chat_id:chatId,
+
+text:
 `🌹 أهلاً بك في بوت MOQATI511
 
 اختر الخدمة المطلوبة:`,
 
 
-    reply_markup:{
+reply_markup:{
 
-     inline_keyboard:[
-
-
-      [
-       {
-        text:"📱 إضافة رقم الجوال",
-        callback_data:"add_phone"
-       }
-      ],
+inline_keyboard:[
 
 
-      [
-       {
-        text:"📅 إضافة موعد الزواج",
-        callback_data:"add_wedding"
-       }
-      ],
+[
+{
+text:"📱 إضافة رقم الجوال",
+callback_data:"add_phone"
+}
+],
 
 
-      [
-       {
-        text:"📋 جدول زواجات القبيلة",
-        url:
+[
+{
+text:"📅 إضافة موعد الزواج",
+callback_data:"add_wedding"
+}
+],
+
+
+[
+{
+text:"📋 جدول زواجات القبيلة",
+url:
 "https://script.google.com/macros/s/AKfycbwFdO1vFM08rqugX5FXi-Tyo69vgr2dbL7uS1XiqYg7IsWoBVjMEzA31WQ4q4LRlNXo1w/exec"
-       }
-      ],
+}
+],
 
 
-      [
-       {
-        text:"☎️ للتواصل معنا",
-        url:
+[
+{
+text:"☎️ للتواصل معنا",
+url:
 "https://api.whatsapp.com/send/?phone=966500994990&text&type=phone_number&app_absent=0"
-       }
-      ]
+}
+]
 
 
-     ]
+]
 
-    }
-
-
-   })
+}
 
 
-  });
+})
 
 
-  return res.sendStatus(200);
-
- }
+});
 
 
-
- await sendMessage(
-  chatId,
-  "اختر خدمة من القائمة."
- );
+return res.sendStatus(200);
 
 
- res.sendStatus(200);
+}
 
 
 
- }
+await sendMessage(
+chatId,
+"اختر خدمة من القائمة."
+);
 
 
- catch(error){
+res.sendStatus(200);
 
 
- console.log(error);
+
+}
 
 
- res.sendStatus(200);
+catch(error){
 
+console.log(error);
 
- }
+res.sendStatus(200);
+
+}
 
 
 });
@@ -256,118 +286,303 @@ app.post("/webhook", async(req,res)=>{
 // نموذج رقم الجوال
 //=====================
 
-async function handlePhoneForm(chatId,text){
+async function handlePhone(chatId,text){
+
+
+const state=userStates[chatId];
 
 
 
- const state = userStates[chatId];
+if(state.step==="name"){
+
+
+state.name=text;
+
+state.step="fifth";
+
+
+await sendMessage(
+chatId,
+"👥 أرسل اسم الخامس:"
+);
+
+
+return;
+
+}
 
 
 
- if(state.step==="name"){
+if(state.step==="fifth"){
 
 
-  state.name=text;
+state.fifth=text;
 
-  state.step="fifth";
-
-
-  await sendMessage(
-   chatId,
-   "👥 أرسل اسم الخامس:"
-  );
+state.step="phone";
 
 
-  return;
-
- }
-
-
-
-
- if(state.step==="fifth"){
+await sendMessage(
+chatId,
+"📱 أرسل رقم الجوال:"
+);
 
 
-  state.fifth=text;
+return;
 
-  state.step="phone";
-
-
-  await sendMessage(
-   chatId,
-   "📱 أرسل رقم الجوال:"
-  );
-
-
-  return;
-
- }
+}
 
 
 
- if(state.step==="phone"){
+if(state.step==="phone"){
 
 
-  state.phone=text;
+state.phone=text;
+
+
+await savePhone(state);
 
 
 
-  await savePhone(state);
+await sendMessage(
+chatId,
+"✅ تم حفظ رقم الجوال بنجاح."
+);
 
 
-
-  await sendMessage(
-   chatId,
-   "✅ تم حفظ بيانات رقم الجوال بنجاح."
-  );
+delete userStates[chatId];
 
 
-  delete userStates[chatId];
-
-
- }
+}
 
 
 }
 
 //=====================
-// حفظ رقم الجوال في Google Sheet
+// نموذج موعد الزواج
+//=====================
+
+async function handleWedding(chatId,text){
+
+
+const state = userStates[chatId];
+
+
+
+if(state.step==="groom"){
+
+
+state.groom=text;
+
+state.step="fifth";
+
+
+await sendMessage(
+chatId,
+"👥 أرسل اسم الخامس:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="fifth"){
+
+
+state.fifth=text;
+
+state.step="phone";
+
+
+await sendMessage(
+chatId,
+"📱 أرسل رقم الجوال:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="phone"){
+
+
+state.phone=text;
+
+state.step="day";
+
+
+await sendMessage(
+chatId,
+"📅 أرسل اليوم:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="day"){
+
+
+state.day=text;
+
+state.step="date";
+
+
+await sendMessage(
+chatId,
+"🗓 أرسل التاريخ الهجري:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="date"){
+
+
+state.date=text;
+
+state.step="hall";
+
+
+await sendMessage(
+chatId,
+"🏛 أرسل اسم القاعة:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="hall"){
+
+
+state.hall=text;
+
+state.step="invitation";
+
+
+await sendMessage(
+chatId,
+"🎟 أرسل نوع الدعوة:"
+);
+
+
+return;
+
+}
+
+
+
+if(state.step==="invitation"){
+
+
+state.invitation=text;
+
+
+await saveWedding(state);
+
+
+await sendMessage(
+chatId,
+"✅ تم حفظ موعد الزواج بنجاح."
+);
+
+
+delete userStates[chatId];
+
+
+}
+
+
+}
+
+
+
+//=====================
+// الحفظ في Google Sheet
 //=====================
 
 async function savePhone(data){
 
 
- const response = await fetch(
-  GOOGLE_SCRIPT_URL,
-  {
+await fetch(
+PHONE_SCRIPT_URL,
+{
 
-   method:"POST",
+method:"POST",
 
-   headers:{
-    "Content-Type":"application/json"
-   },
+headers:{
+"Content-Type":"application/json"
+},
 
+body:JSON.stringify({
 
-   body:JSON.stringify({
+type:"phone",
 
-    type:"phone",
+name:data.name,
 
-    name:data.name,
+fifth:data.fifth,
 
-    fifth:data.fifth,
+phone:data.phone
 
-    phone:data.phone
+})
 
-   })
-
-  }
- );
+});
 
 
- console.log(
-  "Google Sheet:",
-  await response.text()
- );
+}
+
+
+
+async function saveWedding(data){
+
+
+await fetch(
+WEDDING_SCRIPT_URL,
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+type:"wedding",
+
+groom:data.groom,
+
+fifth:data.fifth,
+
+phone:data.phone,
+
+day:data.day,
+
+date:data.date,
+
+hall:data.hall,
+
+invitation:data.invitation
+
+})
+
+});
 
 
 }
@@ -375,42 +590,37 @@ async function savePhone(data){
 
 
 //=====================
-// إرسال رسالة Telegram
+// إرسال رسالة
 //=====================
 
 async function sendMessage(chatId,text){
 
 
- const response = await fetch(
-  API + "/sendMessage",
-  {
+const response = await fetch(
+API + "/sendMessage",
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+chat_id:chatId,
+
+text:text
+
+})
+
+});
 
 
-   method:"POST",
-
-
-   headers:{
-    "Content-Type":"application/json"
-   },
-
-
-   body:JSON.stringify({
-
-    chat_id:chatId,
-
-    text:text
-
-   })
-
-
-  }
- );
-
-
- console.log(
-  "Telegram:",
-  await response.text()
- );
+console.log(
+"Telegram:",
+await response.text()
+);
 
 
 }
@@ -421,17 +631,18 @@ async function sendMessage(chatId,text){
 // تشغيل السيرفر
 //=====================
 
-
-const PORT = process.env.PORT || 3000;
+const PORT =
+process.env.PORT || 3000;
 
 
 app.listen(PORT,()=>{
 
 
- console.log(
-  `MOQATI511 Bot running on port ${PORT}`
- );
+console.log(
+`MOQATI511 Bot running on port ${PORT}`
+);
 
 
 });
 
+ 
