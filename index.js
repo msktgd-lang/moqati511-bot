@@ -1,12 +1,8 @@
+import express from "express";
+import fetch from "node-fetch";
 import OpenAI from "openai";
 import knowledge from "./knowledge.json" with { type: "json" };
 
-
-const openai = new OpenAI({
- apiKey: process.env.OPENAI_API_KEY
-});
-import express from "express";
-import fetch from "node-fetch";
 
 const app = express();
 
@@ -22,14 +18,31 @@ const TOKEN = process.env.BOT_TOKEN;
 const API = `https://api.telegram.org/bot${TOKEN}`;
 
 
+// OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+
 // رابط Google Apps Script
+
 const GOOGLE_SCRIPT_URL =
 "https://script.google.com/macros/s/AKfycbzEqJ1-idCkcAyIDaxHGCv_PZuyVXMAHQny28Rb0ZrcJvab4roBrVLyI6g9cWWgV9WP/exec";
 
 
+
 // حالات المستخدمين
+
 const userStates = {};
+
 const assistantUsers = {};
+
+
+
+// ذاكرة بسيطة للمحادثة
+
+const chatMemory = {};
+
 
 
 //=====================
@@ -41,6 +54,94 @@ app.get("/", (req,res)=>{
  res.send("MOQATI511 Bot is Running ✅");
 
 });
+
+
+
+//=====================
+// الذكاء الاصطناعي
+//=====================
+
+async function askAI(question, chatId){
+
+
+ // البحث في المعرفة الخاصة أولاً
+
+ for(const key in knowledge){
+
+   if(question.includes(key)){
+
+     return knowledge[key];
+
+   }
+
+ }
+
+
+
+ // حفظ المحادثة
+
+ if(!chatMemory[chatId]){
+
+   chatMemory[chatId]=[];
+
+ }
+
+
+ chatMemory[chatId].push({
+
+   role:"user",
+
+   content:question
+
+ });
+
+
+
+ const response = await openai.chat.completions.create({
+
+   model:"gpt-4.1-mini",
+
+   messages:[
+
+    {
+
+     role:"system",
+
+     content:
+`أنت مساعد ذكي لبوت MOQATI511.
+تحدث بالعربية بأسلوب محترم وطبيعي.
+ساعد المستخدم في الأسئلة العامة.
+إذا كان السؤال عن خدمات القبيلة استخدم المعلومات المتوفرة فقط.
+لا تخترع معلومات غير موجودة.`
+    },
+
+    ...chatMemory[chatId]
+
+   ]
+
+ });
+
+
+
+ const answer =
+ response.choices[0].message.content;
+
+
+
+ chatMemory[chatId].push({
+
+   role:"assistant",
+
+   content:answer
+
+ });
+
+
+
+ return answer;
+
+
+}
 
 
 
@@ -64,217 +165,201 @@ app.post("/webhook", async(req,res)=>{
 
 
 
- // ضغط الأزرار
+ if(update.callback_query){
 
-if(update.callback_query){
 
   const chatId =
   update.callback_query.message.chat.id;
+
 
   const data =
   update.callback_query.data;
 
 
-  //=====================
+
   // المساعد الذكي
-  //=====================
 
   if(data==="assistant"){
 
+
     assistantUsers[chatId]=true;
 
+
     await sendMessage(
+
       chatId,
+
 `🤖 أهلاً بك في المساعد الذكي
 
-يمكنك كتابة أي سؤال يتعلق بالبوت.
+اكتب سؤالك وسأحاول مساعدتك.
 
 للخروج اكتب:
-
 إلغاء`
+
     );
+
 
     return res.sendStatus(200);
 
   }
 
 
-  //=====================
-  // إضافة رقم الجوال
-  //=====================
-
-  if(data==="add_phone"){
-
-    userStates[chatId]={
-      step:"name"
-    };
-
-    await sendMessage(
-      chatId,
-      "👤 أرسل الاسم الثلاثي:"
-    );
-
-    return res.sendStatus(200);
-
-  }
-
-
-  //=====================
-  // إضافة الزواج
-  //=====================
-
-  if(data==="add_wedding"){
-
-    await sendMessage(
-      chatId,
-      "📅 سيتم تجهيز إضافة موعد الزواج."
-    );
-
-    return res.sendStatus(200);
-
-  }
-
-
-  return res.sendStatus(200);
-
-}
-
-
-if(!update.message){
-
-  return res.sendStatus(200);
-
-}
-
-
-const chatId =
-update.message.chat.id;
-
-
-const text =
-update.message.text || "";
 //=====================
-// المساعد الذكي
+// إضافة رقم الجوال
 //=====================
 
-if(assistantUsers[chatId]){
+if(data==="add_phone"){
 
- if(text==="إلغاء"){
+ userStates[chatId]={
+  step:"name"
+ };
 
-  delete assistantUsers[chatId];
-
-  await sendMessage(
-   chatId,
-   "✅ تم إغلاق المساعد الذكي."
-  );
-
-  return res.sendStatus(200);
-
- }
 
  await sendMessage(
   chatId,
-  "🤖 المساعد الذكي قيد التطوير.\n\nكتبت:\n" + text
+  "👤 أرسل الاسم الثلاثي:"
  );
+
 
  return res.sendStatus(200);
 
 }
 
- // متابعة التسجيل
 
- if(userStates[chatId]){
+//=====================
+// إضافة الزواج
+//=====================
 
-
-   await handlePhoneForm(
-    chatId,
-    text
-   );
+if(data==="add_wedding"){
 
 
-   return res.sendStatus(200);
+ await sendMessage(
+  chatId,
+  "📅 سيتم تجهيز إضافة موعد الزواج."
+ );
+
+
+ return res.sendStatus(200);
+
+}
+
+
+return res.sendStatus(200);
+
 
  }
 
 
- //=====================
- // أمر البداية
- //=====================
-
-if (text === "/start") {
-
-  await fetch(API + "/sendMessage", {
-
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json"
-    },
-
-    body: JSON.stringify({
-
-      chat_id: chatId,
-
-      text:
-`🌹 أهلاً بك في بوت MOQATI511
-
-اختر الخدمة المطلوبة:`,
-
-      reply_markup: {
-
-        inline_keyboard: [
-
-          [
-            {
-              text: "📱 إضافة رقم الجوال",
-              url: "https://script.google.com/macros/s/AKfycbwhcbIigHH5S9_gKfjBAvry92gyps3pR2ZIMKh9knLrAprWR9LG1djRZPZm0Eq-pftZnw/exec"
-            }
-          ],
-
-          [
-            {
-              text: "📅 إضافة موعد الزواج",
-              url: "https://script.google.com/macros/s/AKfycbw6yH_qWiFlZ9lCy5_bjw5CSPf8Cgz_c1aWxJ-s6x10yrDhwrTK7fUPRKYeE_h1oze-/exec"
-            }
-          ],
-
-          [
-            {
-              text: "📋 جدول زواجات القبيلة",
-              url: "https://script.google.com/macros/s/AKfycbwFdO1vFM08rqugX5FXi-Tyo69vgr2dbL7uS1XiqYg7IsWoBVjMEzA31WQ4q4LRlNXo1w/exec"
-            }
-          ],
-
-         [
-  {
-    text: "🤖 المساعد الذكي",
-    callback_data: "assistant"
-  }
-],
-         
-          [
-            {
-              text: "☎️ للتواصل معنا",
-              url: "https://api.whatsapp.com/send/?phone=966500994990&text&type=phone_number&app_absent=0"
-            }
-          ]
-
-        ]
-
-      }
-
-    })
-
-  });
+ if(!update.message){
 
   return res.sendStatus(200);
-}
 
- await sendMessage(
+ }
+
+
+ const chatId =
+ update.message.chat.id;
+
+
+ const text =
+ update.message.text || "";
+
+
+
+ //=====================
+ // المساعد الذكي
+ //=====================
+
+ if(assistantUsers[chatId]){
+
+
+  if(text==="إلغاء"){
+
+
+    delete assistantUsers[chatId];
+
+
+    await sendMessage(
+
+      chatId,
+
+      "✅ تم إغلاق المساعد الذكي."
+
+    );
+
+
+    return res.sendStatus(200);
+
+  }
+
+
+
+  const reply =
+  await askAI(text, chatId);
+
+
+
+  await sendMessage(
+
+    chatId,
+
+    reply
+
+  );
+
+
+
+  return res.sendStatus(200);
+
+
+ }
+
+
+
+// متابعة التسجيل
+
+if(userStates[chatId]){
+
+
+ await handlePhoneForm(
   chatId,
-  "اختر خدمة من القائمة."
+  text
  );
 
+
+ return res.sendStatus(200);
+
+}
+
+
+
+//=====================
+// أمر البداية
+//=====================
+
+if(text==="/start"){
+
+
+ await sendMessage(
+
+ chatId,
+
+`🌹 أهلاً بك في بوت MOQATI511
+
+اختر الخدمة المطلوبة:
+
+📱 إضافة رقم الجوال
+📅 إضافة موعد الزواج
+📋 جدول زواجات القبيلة
+🤖 المساعد الذكي
+☎️ للتواصل معنا`
+
+ );
+
+
+ return res.sendStatus(200);
+
+}
 
  res.sendStatus(200);
 
@@ -296,9 +381,6 @@ if (text === "/start") {
 
 
 });
-
-
-
 //=====================
 // نموذج رقم الجوال
 //=====================
@@ -306,9 +388,7 @@ if (text === "/start") {
 async function handlePhoneForm(chatId,text){
 
 
-
  const state = userStates[chatId];
-
 
 
  if(state.step==="name"){
@@ -352,6 +432,7 @@ async function handlePhoneForm(chatId,text){
 
 
 
+
  if(state.step==="phone"){
 
 
@@ -376,6 +457,10 @@ async function handlePhoneForm(chatId,text){
 
 
 }
+
+
+
+
 //=====================
 // حفظ رقم الجوال في Google Sheet
 //=====================
@@ -420,6 +505,7 @@ async function savePhone(data){
 
 
 
+
 //=====================
 // إرسال رسالة Telegram
 //=====================
@@ -460,6 +546,7 @@ async function sendMessage(chatId,text){
 
 
 }
+
 
 
 
