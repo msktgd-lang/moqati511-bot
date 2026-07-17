@@ -1,3 +1,10 @@
+import OpenAI from "openai";
+import knowledge from "./knowledge.json" with { type: "json" };
+
+
+const openai = new OpenAI({
+ apiKey: process.env.OPENAI_API_KEY
+});
 import express from "express";
 import fetch from "node-fetch";
 
