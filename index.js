@@ -113,7 +113,103 @@ update.callback_query.message.chat.id;
 const data =
 update.callback_query.data;
 
+// اختيار خدمة إضافة رقم الجوال
 
+if(data==="add_phone"){
+
+users[chatId]={
+type:"phone",
+step:"name"
+};
+
+
+await sendMessage(
+chatId,
+"👤 أرسل الاسم الثلاثي:"
+);
+
+return res.sendStatus(200);
+
+}
+
+
+
+// اختيار خدمة الزواج
+
+if(data==="add_wedding"){
+
+users[chatId]={
+type:"wedding",
+step:"groom"
+};
+
+
+await sendMessage(
+chatId,
+"👤 أرسل اسم العريس:"
+);
+
+return res.sendStatus(200);
+
+}
+
+
+
+// اختيار الخامس
+
+if(data.startsWith("fifth_")){
+
+
+const fifth =
+data.replace("fifth_","");
+
+
+users[chatId].fifth=fifth;
+
+
+users[chatId].step="phone";
+
+
+await sendMessage(
+chatId,
+"📱 أرسل رقم الجوال (10 أرقام بدون مسافات):"
+);
+
+
+return res.sendStatus(200);
+
+}
+
+
+
+// اختيار الدعوة
+
+if(data.startsWith("invite_")){
+
+
+const invitation =
+data.replace("invite_","");
+
+
+users[chatId].invitation=invitation;
+
+
+await saveWedding(users[chatId]);
+
+
+await sendMessage(
+chatId,
+"✅ تم حفظ موعد الزواج بنجاح."
+);
+
+
+delete users[chatId];
+
+
+return res.sendStatus(200);
+
+}
+ 
 // هنا ستضاف معالجة الأزرار في الجزء الثاني
 
 
