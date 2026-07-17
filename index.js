@@ -1,6 +1,14 @@
 import express from "express";
 import fetch from "node-fetch";
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT:", err);
+});
 
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED:", err);
+});
+
+console.log("🚀 Starting application...");
 const app = express();
 
 app.use(express.json());
