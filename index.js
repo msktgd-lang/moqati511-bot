@@ -68,13 +68,13 @@ app.get("/", (req,res)=>{
 async function askAI(question, chatId){
 
 
-// البحث في المعلومات الخاصة
+// البحث في المعرفة الخاصة
 
 for(const key in knowledge){
 
  if(question.includes(key)){
 
-   return knowledge[key];
+  return knowledge[key];
 
  }
 
@@ -86,7 +86,11 @@ for(const key in knowledge){
 const result = await model.generateContent(
 `
 أنت مساعد ذكي لبوت MOQATI511.
-أجب باللغة العربية بأسلوب طبيعي ومحترم.
+
+تحدث باللغة العربية بأسلوب محترم وطبيعي.
+ساعد المستخدم في الأسئلة العامة.
+إذا كان السؤال عن خدمات القبيلة استخدم المعلومات المتوفرة فقط.
+لا تخترع معلومات غير موجودة.
 
 سؤال المستخدم:
 ${question}
@@ -101,7 +105,6 @@ return answer;
 
 
 }
-
 // البحث في المعرفة الخاصة
 
 for(const key in knowledge){
