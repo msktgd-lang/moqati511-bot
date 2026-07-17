@@ -407,6 +407,31 @@ if (text === "/start") {
   return res.sendStatus(200);
 
 }
+   //=====================
+// نهاية استقبال الرسائل
+//=====================
+
+await sendMessage(
+ chatId,
+ "اختر خدمة من القائمة."
+);
+
+
+res.sendStatus(200);
+
+
+}
+
+catch(error){
+
+ console.log(error);
+
+ res.sendStatus(200);
+
+}
+
+
+});
 //=====================
 // نموذج رقم الجوال
 //=====================
