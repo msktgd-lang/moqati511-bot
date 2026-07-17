@@ -551,33 +551,47 @@ phone:data.phone
 async function saveWedding(data){
 
  const response = await fetch(
- WEDDING_SCRIPT_URL,
- {
- method:"POST",
- headers:{
- "Content-Type":"application/json"
- },
- body:JSON.stringify({
+  WEDDING_SCRIPT_URL,
+  {
 
- type:"wedding",
- groom:data.groom,
- fifth:data.fifth,
- phone:data.phone,
- day:data.day,
- date:data.date,
- hall:data.hall,
- invitation:data.invitation
+   method:"POST",
 
- })
- });
+   headers:{
+    "Content-Type":"application/json"
+   },
+
+   body:JSON.stringify({
+
+    type:"wedding",
+
+    groom:data.groom,
+
+    fifth:data.fifth,
+
+    phone:data.phone,
+
+    day:data.day,
+
+    date:data.date,
+
+    hall:data.hall,
+
+    invitation:data.invitation
+
+   })
+
+  }
+ );
+
+
+ const result = await response.text();
 
 
  console.log(
- "Wedding Google:",
- await response.text()
+  "WEDDING GOOGLE RESPONSE:",
+  result
  );
 
-}
 
 }
 
