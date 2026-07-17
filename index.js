@@ -27,11 +27,34 @@ app.post("/webhook", async (req, res) => {
     const chatId = update.message.chat.id;
     const text = update.message.text || "";
 
-    let reply = "لم أفهم طلبك.";
+   if (text === "/start") {
 
-    if (text === "/start") {
-      reply = "🌹 أهلاً بك في بوت MOQATI511";
-    }
+  await fetch(API + "/sendMessage", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: "🌹 أهلاً بك في بوت MOQATI511\n\nاختر الخدمة المطلوبة:",
+      reply_markup: {
+        keyboard: [
+          [
+            "📱 إضافة رقم الجوال",
+            "📅 إضافة موعد الزواج"
+          ],
+          [
+            "☎️ للتواصل معنا",
+            "📋 جدول زواجات القبيلة"
+          ]
+        ],
+        resize_keyboard: true
+      }
+    })
+  });
+
+  return res.sendStatus(200);
+}
 
    const telegramResponse = await fetch(API + "/sendMessage", {
   method: "POST",
