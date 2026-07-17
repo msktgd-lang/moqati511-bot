@@ -68,6 +68,40 @@ app.get("/", (req,res)=>{
 async function askAI(question, chatId){
 
 
+// البحث في المعلومات الخاصة
+
+for(const key in knowledge){
+
+ if(question.includes(key)){
+
+   return knowledge[key];
+
+ }
+
+}
+
+
+// استخدام Gemini
+
+const result = await model.generateContent(
+`
+أنت مساعد ذكي لبوت MOQATI511.
+أجب باللغة العربية بأسلوب طبيعي ومحترم.
+
+سؤال المستخدم:
+${question}
+`
+);
+
+
+const answer = result.response.text();
+
+
+return answer;
+
+
+}
+
 // البحث في المعرفة الخاصة
 
 for(const key in knowledge){
@@ -126,71 +160,59 @@ return response;
 }
  // حفظ المحادثة
 
- if(!chatMemory[chatId]){
+if(!chatMemory[chatId]){
 
-   chatMemory[chatId]=[];
-
- }
-
-
- chatMemory[chatId].push({
-
-   role:"user",
-
-   content:question
-
- });
-
-
-
- const response = await openai.chat.completions.create({
-
-   model:"gpt-4.1-mini",
-
-   messages:[
-
-    {
-
-     role:"system",
-
-     content:
-`أنت مساعد ذكي لبوت MOQATI511.
-تحدث بالعربية بأسلوب محترم وطبيعي.
-ساعد المستخدم في الأسئلة العامة.
-إذا كان السؤال عن خدمات القبيلة استخدم المعلومات المتوفرة فقط.
-لا تخترع معلومات غير موجودة.`
-    },
-
-    ...chatMemory[chatId]
-
-   ]
-
- });
-
-
-
- const answer =
- response.choices[0].message.content;
-
-
-
- chatMemory[chatId].push({
-
-   role:"assistant",
-
-   content:answer
-
- });
-
-
-
- return answer;
-
+ chatMemory[chatId]=[];
 
 }
 
 
+chatMemory[chatId].push({
 
+ role:"user",
+
+ content:question
+
+});
+
+
+
+// إرسال السؤال إلى Gemini
+
+const result = await model.generateContent(
+
+`
+أنت مساعد ذكي لبوت MOQATI511.
+
+تحدث بالعربية بأسلوب محترم وطبيعي.
+ساعد المستخدم في الأسئلة العامة.
+إذا كان السؤال عن خدمات القبيلة استخدم المعلومات المتوفرة فقط.
+لا تخترع معلومات غير موجودة.
+
+سؤال المستخدم:
+${question}
+`
+
+);
+
+
+
+const answer =
+result.response.text();
+
+
+
+chatMemory[chatId].push({
+
+ role:"assistant",
+
+ content:answer
+
+});
+
+
+
+return answer;
 //=====================
 // استقبال Telegram
 //=====================
