@@ -2,6 +2,7 @@ import express from "express";
 import fetch from "node-fetch";
 
 const app = express();
+
 app.use(express.json());
 
 //=====================
@@ -48,37 +49,34 @@ app.post("/webhook", async (req, res) => {
     }
 
     await fetch(API + "/sendMessage", {
-
       method: "POST",
-
       headers: {
         "Content-Type": "application/json"
       },
-
       body: JSON.stringify({
         chat_id: chatId,
         text: reply
       })
-
     });
 
-    res.sendStatus(200);
+    return res.sendStatus(200);
 
   } catch (err) {
 
     console.error(err);
-    res.sendStatus(200);
+
+    return res.sendStatus(200);
 
   }
 
-  //=====================
+});
+
+//=====================
 // تشغيل السيرفر
 //=====================
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`MOQATI511 Bot running on port ${PORT}`);
-});
-
+  console.log(`✅ MOQATI511 Bot running on port ${PORT}`);
 });
