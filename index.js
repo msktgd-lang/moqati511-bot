@@ -1060,18 +1060,12 @@ await response.text()
 // تشغيل السيرفر
 //=====================
 
-const PORT =
-process.env.PORT || 3000;
-
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT,()=>{
-
 
 console.log(
 `MOQATI511 Bot running on port ${PORT}`
 );
-
-
-});
 
 });
