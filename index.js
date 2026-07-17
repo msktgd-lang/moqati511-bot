@@ -22,8 +22,7 @@ const PHONE_SCRIPT_URL =
 
 // حفظ الزواج
 const WEDDING_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbw6yH_qWiFlZ9lCy5_bjw5CSPf8Cgz_c1aWxJ-s6x10yrDhwrTK7fUPRKYeE_h1oze-/exec";
-
+"https://script.google.com/macros/s/AKfycbyB7ewIF7Mb81O3j8FTep26yBS9U2bhzmCV1JgR3OAAIjGhDR6cxz7OFUrbKvZu935Z/exec";
 
 // حالات المستخدمين
 const userStates = {};
