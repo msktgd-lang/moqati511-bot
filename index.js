@@ -59,22 +59,25 @@ app.post("/webhook", async(req,res)=>{
 
  // ضغط الأزرار
 
- if(update.callback_query){
+if(update.callback_query){
+
+  const chatId =
+  update.callback_query.message.chat.id;
+
+  const data =
+  update.callback_query.data;
 
 
- const chatId =
- update.callback_query.message.chat.id;
+  //=====================
+  // المساعد الذكي
+  //=====================
 
+  if(data==="assistant"){
 
- const data =
-update.callback_query.data;
+    assistantUsers[chatId]=true;
 
-if(data==="assistant"){
-
-  assistantUsers[chatId]=true;
-
-  await sendMessage(
-    chatId,
+    await sendMessage(
+      chatId,
 `🤖 أهلاً بك في المساعد الذكي
 
 يمكنك كتابة أي سؤال يتعلق بالبوت.
@@ -82,61 +85,67 @@ if(data==="assistant"){
 للخروج اكتب:
 
 إلغاء`
-  );
+    );
+
+    return res.sendStatus(200);
+
+  }
+
+
+  //=====================
+  // إضافة رقم الجوال
+  //=====================
+
+  if(data==="add_phone"){
+
+    userStates[chatId]={
+      step:"name"
+    };
+
+    await sendMessage(
+      chatId,
+      "👤 أرسل الاسم الثلاثي:"
+    );
+
+    return res.sendStatus(200);
+
+  }
+
+
+  //=====================
+  // إضافة الزواج
+  //=====================
+
+  if(data==="add_wedding"){
+
+    await sendMessage(
+      chatId,
+      "📅 سيتم تجهيز إضافة موعد الزواج."
+    );
+
+    return res.sendStatus(200);
+
+  }
+
 
   return res.sendStatus(200);
 
 }
 
-if(data==="add_phone"){
 
-  userStates[chatId]={
-    step:"name"
-  };
+if(!update.message){
 
-  
+  return res.sendStatus(200);
+
 }
 
-  await sendMessage(
-   chatId,
-   "👤 أرسل الاسم الثلاثي:"
-  );
+
+const chatId =
+update.message.chat.id;
 
 
- }
-
-
-
- if(data==="add_wedding"){
-
-
-  await sendMessage(
-   chatId,
-   "📅 سيتم تجهيز إضافة موعد الزواج."
-  );
-
-
- }
-
-
-
- return res.sendStatus(200);
-
-
- }
-
-
-
- if(!update.message){
-
- 
- const chatId =
- update.message.chat.id;
-
-
- const text =
- update.message.text || "";
-
+const text =
+update.message.text || "";
 //=====================
 // المساعد الذكي
 //=====================
