@@ -67,17 +67,35 @@ app.post("/webhook", async(req,res)=>{
 
 
  const data =
- update.callback_query.data;
+update.callback_query.data;
 
+if(data==="assistant"){
 
+  assistantUsers[chatId]=true;
 
- if(data==="add_phone"){
+  await sendMessage(
+    chatId,
+`🤖 أهلاً بك في المساعد الذكي
 
+يمكنك كتابة أي سؤال يتعلق بالبوت.
+
+للخروج اكتب:
+
+إلغاء`
+  );
+
+  return res.sendStatus(200);
+
+}
+
+if(data==="add_phone"){
 
   userStates[chatId]={
-   step:"name"
+    step:"name"
   };
 
+  
+}
 
   await sendMessage(
    chatId,
@@ -111,29 +129,7 @@ app.post("/webhook", async(req,res)=>{
 
  if(!update.message){
 
-  return res.sendStatus(200);
-
- }
-
-if(data==="assistant"){
-
- assistantUsers[chatId]=true;
-
- await sendMessage(
-  chatId,
-`🤖 أهلاً بك في المساعد الذكي
-
-يمكنك كتابة أي سؤال.
-
-للخروج اكتب:
-
-إلغاء`
- );
-
- return res.sendStatus(200);
-
-}
-
+ 
  const chatId =
  update.message.chat.id;
 
