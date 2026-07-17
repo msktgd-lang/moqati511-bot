@@ -33,16 +33,21 @@ app.post("/webhook", async (req, res) => {
       reply = "🌹 أهلاً بك في بوت MOQATI511";
     }
 
-    await fetch(API + "/sendMessage", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: reply
-      })
-    });
+   const telegramResponse = await fetch(API + "/sendMessage", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    chat_id: chatId,
+    text: reply
+  })
+});
+
+console.log(
+  "Telegram response:",
+  await telegramResponse.text()
+);
 
     res.sendStatus(200);
 
