@@ -121,6 +121,24 @@ for(const key in knowledge){
 
 // إذا لم توجد إجابة محفوظة استخدم Gemini
 
+async function askAI(question, chatId){
+
+
+// البحث في المعرفة الخاصة أولاً
+
+for(const key in knowledge){
+
+ if(question.includes(key)){
+
+  return knowledge[key];
+
+ }
+
+}
+
+
+// إذا لم توجد إجابة في المعرفة استخدم Gemini
+
 const result = await model.generateContent(
 
 `أنت مساعد ذكي لبوت MOQATI511.
@@ -135,26 +153,6 @@ ${question}`
 
 
 const response = result.response.text();
-
-
-return response;
-
-
-}
-
-
-const result = await model.generateContent(
-
-`أنت مساعد ذكي لبوت MOQATI511.
-أجب باللغة العربية بأسلوب طبيعي ومحترم.
-السؤال:
-${question}`
-
-);
-
-
-const response =
-result.response.text();
 
 
 return response;
