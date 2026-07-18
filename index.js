@@ -282,13 +282,14 @@ try {
 }
 catch(error){
 
-  console.log("GEMINI ERROR:", error);
+  console.log("========== GEMINI ERROR ==========");
+  console.log(error);
+  console.log(error.message);
+  console.log("==================================");
 
   reply = "حدث خطأ أثناء الاتصال بالمساعد الذكي.";
 
 }
-
-
 await sendMessage(
  chatId,
  reply
