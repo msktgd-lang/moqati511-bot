@@ -1,6 +1,7 @@
 import express from "express";
 import fetch from "node-fetch";
 import knowledge from "./knowledge.json" with { type: "json" };
+console.log("===== GEMINI CODE LOADED =====");
 
 console.log("GEMINI VERSION RUNNING");
 const app = express();
