@@ -111,10 +111,6 @@ return answer;
 
 
 
-// إذا لم توجد إجابة محفوظة استخدم Gemini
-
-async function askAI(question, chatId){
-
 
 // البحث في المعرفة الخاصة أولاً
 
