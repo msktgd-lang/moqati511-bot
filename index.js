@@ -108,17 +108,6 @@ return answer;
 
 
 }
-// البحث في المعرفة الخاصة
-
-for(const key in knowledge){
-
- if(question.includes(key)){
-
-   return knowledge[key];
-
- }
-
-}
 
 
 
