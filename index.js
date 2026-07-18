@@ -295,6 +295,8 @@ await sendMessage(
  reply
 );
 
+await sendMainMenu(chatId);
+
   return res.sendStatus(200);
 
 
@@ -584,7 +586,68 @@ async function sendMessage(chatId,text){
 
 }
 
+async function sendMainMenu(chatId){
 
+  await fetch(API + "/sendMessage",{
+
+    method:"POST",
+
+    headers:{
+      "Content-Type":"application/json"
+    },
+
+    body:JSON.stringify({
+
+      chat_id:chatId,
+
+      text:"🏠 القائمة الرئيسية",
+
+      reply_markup:{
+        inline_keyboard:[
+
+          [
+            {
+              text:"📱 إضافة رقم الجوال",
+              url:"https://script.google.com/macros/s/AKfycbwhcbIigHH5S9_gKfjBAvry92gyps3pR2ZIMKh9knLrAprWR9LG1djRZPZm0Eq-pftZnw/exec"
+            }
+          ],
+
+          [
+            {
+              text:"📅 إضافة موعد الزواج",
+              url:"https://script.google.com/macros/s/AKfycbw6yH_qWiFlZ9lCy5_bjw5CSPf8Cgz_c1aWxJ-s6x10yrDhwrTK7fUPRKYeE_h1oze-/exec"
+            }
+          ],
+
+          [
+            {
+              text:"📋 جدول زواجات القبيلة",
+              url:"https://script.google.com/macros/s/AKfycbwFdO1vFM08rqugX5FXi-Tyo69vgr2dbL7uS1XiqYg7IsWoBVjMEzA31WQ4q4LRlNXo1w/exec"
+            }
+          ],
+
+          [
+            {
+              text:"🤖 المساعد الذكي",
+              callback_data:"assistant"
+            }
+          ],
+
+          [
+            {
+              text:"☎️ للتواصل معنا",
+              url:"https://api.whatsapp.com/send/?phone=966500994990&text&type=phone_number&app_absent=0"
+            }
+          ]
+
+        ]
+      }
+
+    })
+
+  });
+
+}
 
 
 //=====================
