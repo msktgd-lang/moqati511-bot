@@ -67,7 +67,7 @@ app.get("/", (req,res)=>{
 //=====================
 // الذكاء الاصطناعي
 //=====================
-
+console.log("ASK AI GEMINI RUNNING");
 async function askAI(question, chatId){
 
 
