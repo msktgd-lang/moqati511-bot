@@ -63,145 +63,67 @@ app.get("/", (req,res)=>{
 });
 
 
-
 //=====================
 // الذكاء الاصطناعي
 //=====================
-console.log("ASK AI GEMINI RUNNING");
-async function askAI(question, chatId){
 
+async function askAI(question, chatId) {
 
-// البحث في المعرفة الخاصة
+  // البحث في المعرفة الخاصة أولاً
+  for (const key in knowledge) {
+    if (question.includes(key)) {
+      return knowledge[key];
+    }
+  }
 
-for(const key in knowledge){
+  // إنشاء ذاكرة للمحادثة
+  if (!chatMemory[chatId]) {
+    chatMemory[chatId] = [];
+  }
 
- if(question.includes(key)){
+  // حفظ رسالة المستخدم
+  chatMemory[chatId].push({
+    role: "user",
+    content: question
+  });
 
-  return knowledge[key];
+  // الاحتفاظ بآخر 10 رسائل فقط
+  if (chatMemory[chatId].length > 10) {
+    chatMemory[chatId] = chatMemory[chatId].slice(-10);
+  }
 
- }
+  // تحويل المحادثة إلى نص
+  const history = chatMemory[chatId]
+    .map(msg => `${msg.role === "user" ? "المستخدم" : "المساعد"}: ${msg.content}`)
+    .join("\n");
 
-}
-
-
-// استخدام Gemini
-
-const result = await model.generateContent(
-`
+  // سؤال Gemini
+  const result = await model.generateContent(`
 أنت مساعد ذكي لبوت MOQATI511.
 
-تحدث باللغة العربية بأسلوب محترم وطبيعي.
-ساعد المستخدم في الأسئلة العامة.
-إذا كان السؤال عن خدمات القبيلة استخدم المعلومات المتوفرة فقط.
-لا تخترع معلومات غير موجودة.
-
-سؤال المستخدم:
-${question}
-`
-);
-
-
-const answer = result.response.text();
-
-
-return answer;
-
-
-}
-
-
-
-
-// البحث في المعرفة الخاصة أولاً
-
-for(const key in knowledge){
-
- if(question.includes(key)){
-
-  return knowledge[key];
-
- }
-
-}
-
-
-// إذا لم توجد إجابة في المعرفة استخدم Gemini
-
-const result = await model.generateContent(
-
-`أنت مساعد ذكي لبوت MOQATI511.
 تحدث باللغة العربية بأسلوب طبيعي ومحترم.
-ساعد المستخدم في الأسئلة العامة.
-إذا كان السؤال عن خدمات البوت أجب حسب المعلومات المتوفرة.
 
-سؤال المستخدم:
-${question}`
+إذا كان السؤال يتعلق بخدمات القبيلة فاستخدم المعلومات الموجودة في المعرفة فقط.
+أما إذا كان سؤالاً عاماً فأجب عنه بشكل طبيعي.
 
-);
-
-
-const response = result.response.text();
-
-
-return response;
-
-
-}
- // حفظ المحادثة
-
-if(!chatMemory[chatId]){
-
- chatMemory[chatId]=[];
-
-}
-
-
-chatMemory[chatId].push({
-
- role:"user",
-
- content:question
-
-});
-
-
-
-// إرسال السؤال إلى Gemini
-
-const result = await model.generateContent(
-
-`
-أنت مساعد ذكي لبوت MOQATI511.
-
-تحدث بالعربية بأسلوب محترم وطبيعي.
-ساعد المستخدم في الأسئلة العامة.
-إذا كان السؤال عن خدمات القبيلة استخدم المعلومات المتوفرة فقط.
-لا تخترع معلومات غير موجودة.
+المحادثة السابقة:
+${history}
 
 سؤال المستخدم:
 ${question}
-`
+`);
 
-);
+  const answer = result.response.text();
 
+  // حفظ رد المساعد
+  chatMemory[chatId].push({
+    role: "assistant",
+    content: answer
+  });
 
+  return answer;
+}
 
-const answer =
-result.response.text();
-
-
-
-chatMemory[chatId].push({
-
- role:"assistant",
-
- content:answer
-
-});
-
-
-
-return answer;
 //=====================
 // استقبال Telegram
 //=====================
