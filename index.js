@@ -1,3 +1,4 @@
+console.log("NEW VERSION GEMINI BOT");
 console.log("RUNNING NEW GEMINI VERSION");
 import express from "express";
 import fetch from "node-fetch";
