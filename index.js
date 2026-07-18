@@ -28,7 +28,7 @@ const genAI = new GoogleGenerativeAI(
 
 
 const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash"
+  model: "gemini-3.5-flash"
 });
 
 // رابط Google Apps Script
