@@ -1,3 +1,4 @@
+console.log("RUNNING NEW GEMINI VERSION");
 import express from "express";
 import fetch from "node-fetch";
 import knowledge from "./knowledge.json" with { type: "json" };
